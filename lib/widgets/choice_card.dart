@@ -85,7 +85,7 @@ class _ChoiceCardState extends State<ChoiceCard> {
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: (short ? 34 : 22) * sc,
+          fontSize: (short ? 34 : (text.length > 28 ? 17 : 21)) * sc,
           fontWeight: FontWeight.w800,
           color: isWrong ? Colors.black26 : (isRight ? Colors.white : const Color(0xFF37474F)),
         ),
@@ -100,9 +100,10 @@ class _ChoiceCardState extends State<ChoiceCard> {
         onTap: () => _tap(i),
         child: Container(
           width: short ? 92 * sc : double.infinity,
-          height: short ? 92 * sc : 62 * sc,
+          height: short ? 92 * sc : null,
+          constraints: short ? null : BoxConstraints(minHeight: 58 * sc),
           alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: short ? 0 : 8),
           child: label,
         ),
       ),
@@ -135,7 +136,7 @@ class _ChoiceCardState extends State<ChoiceCard> {
           Column(
             children: [
               for (int i = 0; i < t.options.length; i++)
-                Padding(padding: const EdgeInsets.only(bottom: 10), child: _option(i, sc, false)),
+                Padding(padding: const EdgeInsets.only(bottom: 8), child: _option(i, sc, false)),
             ],
           ),
         const SizedBox(height: 12),

@@ -35,7 +35,9 @@ class ChallengeScreen extends StatelessWidget {
                 context,
                 emoji: '🎯',
                 title: 'Wyzwanie dnia',
-                desc: dailyDone ? 'Ukończone! Jutro czeka nowe 🎉' : '6 zadań i jeden rysunek. Nagroda: 5 ⭐',
+                desc: dailyDone
+                    ? 'Ukończone! Jutro czeka nowe 🎉'
+                    : (profile.grade <= 3 ? '6 zadań i jeden rysunek. Nagroda: 5 ⭐' : '6 zadań z różnych przedmiotów. Nagroda: 5 ⭐'),
                 done: dailyDone,
                 colors: const [Color(0xFFFFB74D), Color(0xFFFF8A65)],
                 onTap: () => _start(context, false),
@@ -47,7 +49,9 @@ class ChallengeScreen extends StatelessWidget {
                 title: 'Wielkie wyzwanie tygodnia',
                 desc: weeklyDone
                     ? 'Ukończone! W poniedziałek nowe 🎉'
-                    : '12 zadań z matematyki, polskiego i rysowania. Nagroda: 10 ⭐ i specjalna odznaka',
+                    : (profile.grade <= 3
+                        ? '12 zadań z matematyki, polskiego i rysowania. Nagroda: 10 ⭐ i specjalna odznaka'
+                        : '12 zadań ze wszystkich przedmiotów. Nagroda: 10 ⭐ i specjalna odznaka'),
                 done: weeklyDone,
                 colors: const [Color(0xFF7E57C2), Color(0xFF5C6BC0)],
                 onTap: () => _start(context, true),

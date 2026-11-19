@@ -2,11 +2,12 @@
 
 Nauka przez zabawę dla szkoły podstawowej, w formie przewijanego feedu jak TikTok. Każda karta to interaktywne zadanie.
 
-## Wersja 0.1 – klasy 1–3
+## Wersja 0.2 – klasy 1–8
 
 - **Matematyka**: liczenie, dodawanie i odejmowanie, porównywanie, figury, ciągi, mnożenie i dzielenie, zadania z treścią, miary.
 - **Polski**: litery, sylaby, układanie słów, czytanie, ortografia (ó/u, rz/ż, ch/h), alfabet, zdania, części mowy, przeciwieństwa, liczba mnoga.
-- **Plastyka**: rysowanie palcem po śladzie i kolorowanie kredkami.
+- **Plastyka** (klasy 1–3): rysowanie palcem po śladzie i kolorowanie kredkami.
+- **Klasy 4–8**: matematyka (generatory zadań bez końca), polski, angielski, przyroda, biologia, geografia, historia (z układaniem chronologii), fizyka, chemia i WOS. Od klasy 5 dochodzą powtórki z wcześniejszych lat.
 - **Odznaki i gwiazdki**, bez punktów ujemnych. Przy błędzie jest delikatna podpowiedź.
 - **Wyzwania** (dnia i tygodnia) układa sama aplikacja.
 - **Kilka profili** na jednym urządzeniu.

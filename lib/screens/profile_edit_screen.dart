@@ -105,9 +105,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 children: [
                   for (int g = 1; g <= 8; g++)
                     ChoiceChip(
-                      label: Text(g <= 3 ? 'Klasa $g' : 'Klasa $g (wkrótce)', style: const TextStyle(fontSize: 16)),
+                      label: Text('Klasa $g', style: const TextStyle(fontSize: 16)),
                       selected: grade == g,
-                      onSelected: g <= 3 ? (_) => setState(() => grade = g) : null,
+                      onSelected: (_) => setState(() => grade = g),
                     ),
                 ],
               ),

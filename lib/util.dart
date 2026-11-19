@@ -12,6 +12,9 @@ String weekKey(DateTime d) {
   return dayKey(monday);
 }
 
+/// Losowa liczba całkowita z przedziału [a, b].
+int rng(Random r, int a, int b) => b <= a ? a : a + r.nextInt(b - a + 1);
+
 T pick<T>(Random r, List<T> l) => l[r.nextInt(l.length)];
 
 List<T> shuffled<T>(Random r, List<T> l) => List<T>.of(l)..shuffle(r);

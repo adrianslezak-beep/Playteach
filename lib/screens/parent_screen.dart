@@ -4,6 +4,7 @@ import '../badges.dart';
 import '../content/skills.dart';
 import '../models.dart';
 import '../state.dart';
+import '../subjects.dart';
 import '../util.dart';
 import 'profile_edit_screen.dart';
 
@@ -256,13 +257,13 @@ class ProfileStatsScreen extends StatelessWidget {
       listenable: state,
       builder: (context, _) {
         final p = profile;
-        final mathC = p.subjectCorrect['math'] ?? 0;
-        final plC = p.subjectCorrect['polish'] ?? 0;
-        final artC = p.subjectCorrect['art'] ?? 0;
+        final seen = <String>{};
         final skillRows = <SkillDef>[
           for (final s in allSkills)
-            if (s.grade == p.grade || s.grade == 0 || p.skills.containsKey(s.id)) s,
-        ];
+            if ((s.grade == p.grade || p.skills.containsKey(s.id)) && seen.add(s.id)) s,
+        ]..sort((a, b) => a.subject.compareTo(b.subject));
+        final subjectTiles = p.subjectCorrect.entries.where((e) => e.value > 0).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
         final weak = skillRows
             .where((s) => (p.skills[s.id]?.attempts ?? 0) >= 3 && (p.skills[s.id]?.rate ?? 1) < 0.6)
             .toList()
@@ -294,9 +295,7 @@ class ProfileStatsScreen extends StatelessWidget {
                   _stat('Klasa', '${p.grade}'),
                   _stat('Gwiazdki', '⭐ ${p.stars}'),
                   _stat('Zadania', '${p.correct}'),
-                  _stat('Matematyka', '$mathC'),
-                  _stat('Polski', '$plC'),
-                  _stat('Rysunki', '$artC'),
+                  for (final e in subjectTiles) _stat(subjectMeta(e.key).name, '${subjectMeta(e.key).emoji} ${e.value}'),
                   _stat('Dni z rzędu', '🔥 ${p.streak}'),
                   _stat('Odznaki', '${p.badges.length}/${allBadges.length}'),
                 ],
@@ -393,7 +392,7 @@ class ProfileStatsScreen extends StatelessWidget {
       label = 'warto powtórzyć 🔁';
       color = const Color(0xFFE64A19);
     }
-    final subj = s.subject == 'math' ? '🔢' : (s.subject == 'polish' ? '📝' : '🎨');
+    final subj = subjectMeta(s.subject).emoji;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
@@ -401,8 +400,7 @@ class ProfileStatsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('$subj ${s.name}', style: const TextStyle(fontWeight: FontWeight.w600)),
-              const Spacer(),
+              Expanded(child: Text('$subj ${s.name}', style: const TextStyle(fontWeight: FontWeight.w600))),
               Text(label, style: TextStyle(fontSize: 12, color: color)),
             ],
           ),

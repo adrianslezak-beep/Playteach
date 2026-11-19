@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../subjects.dart';
+
 const List<String> praises = [
   'Brawo!', 'Super!', 'Świetnie!', 'Ekstra!', 'Wspaniale!', 'Mistrzostwo!', 'Tak trzymać!', 'Doskonale!', 'Rewelacja!',
 ];
@@ -184,11 +186,9 @@ class SubjectChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch (subject) {
-      'math' => ('🔢 Matematyka', const Color(0xFF1E88E5)),
-      'polish' => ('📝 Polski', const Color(0xFFD81B60)),
-      _ => ('🎨 Plastyka', const Color(0xFF8E24AA)),
-    };
+    final m = subjectMeta(subject);
+    final label = m.label;
+    final color = m.color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),

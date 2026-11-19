@@ -1,0 +1,252 @@
+import 'dart:math';
+
+import '../models.dart';
+import '../util.dart';
+import 'bank.dart';
+import 'common.dart';
+
+const _p = 'polish';
+
+// ───────── Pisownia „nie” (klasy 4–8) ─────────
+// [zapis razem, zapis osobno] – tylko jeden poprawny, drugi podajemy jako błąd.
+const List<List<String>> _nieRazem = [
+  ['niewysoki', 'przymiotnik – razem'], ['nieładny', 'przymiotnik – razem'], ['niepokój', 'rzeczownik – razem'],
+  ['nieporządek', 'rzeczownik – razem'], ['niechcący', 'zawsze razem'], ['niedźwiedź', 'zawsze razem'],
+  ['nienawidzić', 'czasownik bez „nie” nie istnieje – razem'], ['niewiele', 'razem'], ['niegrzeczny', 'przymiotnik – razem'],
+  ['nieszczęście', 'rzeczownik – razem'], ['niebieski', 'zawsze razem'], ['niewidoczny', 'przymiotnik – razem'],
+  ['nieprzyjaciel', 'rzeczownik – razem'], ['niemiły', 'przymiotnik – razem'], ['niechętnie', 'przysłówek od przymiotnika – razem'],
+  ['niedaleko', 'przysłówek od przymiotnika – razem'], ['niezbyt', 'razem'], ['niepełnosprawny', 'przymiotnik – razem'],
+];
+const List<List<String>> _nieOsobno = [
+  ['nie wiem', 'czasownik – osobno'], ['nie lubię', 'czasownik – osobno'], ['nie idę', 'czasownik – osobno'],
+  ['nie ma', 'czasownik – osobno'], ['nie było', 'czasownik – osobno'], ['nie lepszy', 'przymiotnik w stopniu wyższym – osobno'],
+['nie pięć', 'liczebnik – osobno'], ['nie ja', 'zaimek – osobno'],
+  ['nie tak', 'osobno'], ['nie bardzo', 'osobno'], ['nie śpiewając', 'imiesłów przysłówkowy – osobno'],
+  ['nie warto', 'osobno'], ['nie można', 'osobno'], ['nie wolno', 'osobno'], ['nie trzeba', 'osobno'],
+  ['nie zawsze', 'osobno'], ['nie dzisiaj', 'osobno'],
+];
+
+Task nieTask(Random r) {
+  final razem = r.nextBool();
+  final e = razem ? pick(r, _nieRazem) : pick(r, _nieOsobno);
+  final good = e[0];
+  final bad = razem ? 'nie ${good.substring(3)}' : good.replaceFirst('nie ', 'nie');
+  return choice('p4_nie', _p, 'Który zapis jest poprawny?', shuffled(r, [good, bad]), good,
+      hint: '„Nie” z czasownikami piszemy osobno, z rzeczownikami i przymiotnikami – razem.',
+      explain: '$good – ${e[1]}');
+}
+
+// ───────── Bazy pytań ─────────
+
+const List<BankTopic> polishBanks = [
+  BankTopic('p4_parts', 'Części mowy', _p, 4, [
+    "Jaką częścią mowy jest słowo „szybko”?|przysłówek|przymiotnik|czasownik|rzeczownik|Przysłówek odpowiada na pytanie: jak?",
+    "Jaką częścią mowy jest słowo „pięć”?|liczebnik|rzeczownik|przysłówek|przymiotnik|Liczebnik odpowiada na pytanie: ile? który z kolei?",
+    "Jaką częścią mowy jest słowo „biegnie”?|czasownik|rzeczownik|przysłówek|przymiotnik|Czasownik – co robi?",
+    "Jaką częścią mowy jest słowo „zielony”?|przymiotnik|przysłówek|rzeczownik|czasownik|Przymiotnik – jaki?",
+    "Jaką częścią mowy jest słowo „rower”?|rzeczownik|przymiotnik|czasownik|liczebnik|Rzeczownik – kto? co?",
+    "Jaką częścią mowy jest słowo „trzeci”?|liczebnik|przymiotnik|rzeczownik|przysłówek|Liczebnik porządkowy – który z kolei?",
+    "Jaką częścią mowy jest słowo „wczoraj”?|przysłówek|rzeczownik|czasownik|przymiotnik|Przysłówek – kiedy?",
+    "Na jakie pytania odpowiada rzeczownik?|kto? co?|jaki? jaka?|co robi?|ile?|Rzeczownik nazywa osoby, rzeczy, zwierzęta, zjawiska.",
+    "Na jakie pytania odpowiada przymiotnik?|jaki? jaka? jakie?|co robi?|kto? co?|jak?|Przymiotnik określa cechy.",
+    "Przez co odmienia się czasownik?|osoby, liczby, czasy|tylko przypadki|stopnie|nie odmienia się|Czasownik odmieniamy m.in. przez osoby, liczby i czasy.",
+    "Która część mowy się NIE odmienia?|przysłówek|rzeczownik|przymiotnik|czasownik|Przysłówek jest nieodmienny (ale się stopniuje).",
+    "Ile jest przypadków w języku polskim?|7|5|6|8|Mianownik, dopełniacz, celownik, biernik, narzędnik, miejscownik, wołacz.",
+    "Na jakie pytania odpowiada dopełniacz?|kogo? czego?|komu? czemu?|kim? czym?|o kim? o czym?|Dopełniacz: kogo? czego? (nie ma)",
+    "Na jakie pytania odpowiada narzędnik?|z kim? z czym?|kogo? co?|komu? czemu?|o kim? o czym?|Narzędnik: (z) kim? (z) czym?",
+    "Na jakie pytania odpowiada celownik?|komu? czemu?|kogo? czego?|kim? czym?|kto? co?|Celownik: komu? czemu? (się przyglądam)",
+    "Jaki rodzaj ma rzeczownik „okno”?|nijaki|męski|żeński|męskoosobowy|To okno – rodzaj nijaki.",
+    "Jaki rodzaj ma rzeczownik „lampa”?|żeński|męski|nijaki|niemęskoosobowy|Ta lampa – rodzaj żeński.",
+    "Stopień wyższy od „dobry” to…|lepszy|dobrzejszy|najlepszy|bardziej dobry|Stopniowanie nieregularne: dobry – lepszy – najlepszy.",
+    "Stopień najwyższy od „mały” to…|najmniejszy|najmałszy|mniejszy|bardziej mały|mały – mniejszy – najmniejszy",
+    "W którym czasie jest czasownik „pojadę”?|przyszłym|przeszłym|teraźniejszym|zaprzeszłym|Pojadę – jutro, czas przyszły.",
+  ]),
+  BankTopic('p4_literature', 'Teoria literatury', _p, 4, [
+    "Jak nazywa się utwór o bohaterach i zdarzeniach fantastycznych, w którym dobro zwycięża zło?|baśń|legenda|bajka|fraszka|Baśń – świat fantastyczny, dobro zwycięża.",
+    "Jak nazywa się opowieść wyjaśniająca pochodzenie nazwy miejsca, np. Gniezna?|legenda|baśń|bajka|komiks|Legenda często dotyczy prawdziwych miejsc lub postaci.",
+    "Krótki utwór, często o zwierzętach, z morałem to…|bajka|legenda|powieść|hymn|Bajki pisał np. Ignacy Krasicki.",
+    "Morał to…|pouczenie wynikające z utworu|tytuł wiersza|rym na końcu wersu|nazwa bohatera|Morał to nauka płynąca z utworu.",
+    "Jak nazywa się pojedyncza linijka wiersza?|wers|strofa|rym|akapit|Wers to jeden wiersz w utworze.",
+    "Grupa wersów w wierszu to…|strofa (zwrotka)|rozdział|akapit|morał|Strofa = zwrotka.",
+    "Powtórzenie podobnych dźwięków na końcu wersów to…|rym|wers|epitet|refren|Np. kot – płot.",
+    "„Złote słońce” – jakim środkiem jest słowo „złote”?|epitet|porównanie|uosobienie|wyraz dźwiękonaśladowczy|Epitet to określenie rzeczownika.",
+    "„Oczy jak gwiazdy” to…|porównanie|epitet|uosobienie|rym|Porównanie zawiera słówka: jak, niczym, jakby.",
+    "„Wiatr śpiewa piosenkę” – nadanie cech ludzkich to…|uosobienie|porównanie|epitet|rym|Uosobienie – przedmiot lub zjawisko zachowuje się jak człowiek.",
+    "„Kap, kap”, „szu, szu” to…|wyrazy dźwiękonaśladowcze|epitety|porównania|rymy|Naśladują dźwięki.",
+    "Powtarzający się fragment piosenki lub wiersza to…|refren|strofa|morał|puenta|Refren wraca po każdej zwrotce.",
+    "Kto mówi w wierszu?|podmiot liryczny (osoba mówiąca)|narrator zawsze|autor zawsze|bohater filmu|W wierszu mówi osoba mówiąca (podmiot liryczny).",
+    "Kto opowiada historię w opowiadaniu?|narrator|podmiot liryczny|reżyser|aktor|Narrator opowiada w utworach epickich.",
+    "Ciąg zdarzeń w utworze to…|fabuła|morał|rym|strofa|Fabuła to wydarzenia w kolejności.",
+    "Kto napisał „Akademię pana Kleksa”?|Jan Brzechwa|Julian Tuwim|Henryk Sienkiewicz|Adam Mickiewicz|Jan Brzechwa – „Akademia pana Kleksa”.",
+    "Kto napisał „Opowieści z Narnii”?|C.S. Lewis|J.R.R. Tolkien|Antoine de Saint-Exupéry|Ferenc Molnár|Clive Staples Lewis.",
+    "Jak nazywa się chłopiec-bohater „Akademii pana Kleksa”, który opowiada historię?|Adaś Niezgódka|Mateusz|Edmund|Bilbo|Adam Niezgódka to narrator.",
+    "Kto napisał bajki „Kruk i lis” oraz „Szczur i kot”?|Ignacy Krasicki|Jan Kochanowski|Aleksander Fredro|Bolesław Prus|Ignacy Krasicki – bajkopisarz.",
+    "Kto napisał „Lokomotywę”?|Julian Tuwim|Jan Brzechwa|Maria Konopnicka|Wisława Szymborska|„Stoi na stacji lokomotywa…” – Julian Tuwim.",
+  ]),
+  BankTopic('p5_syntax', 'Składnia', _p, 5, [
+    "Która część zdania odpowiada na pytanie „kto? co?” i wskazuje wykonawcę czynności?|podmiot|orzeczenie|przydawka|okolicznik|Podmiot – kto? co?",
+    "Która część zdania mówi, co robi podmiot?|orzeczenie|przydawka|dopełnienie|okolicznik|Orzeczenie to najczęściej czasownik.",
+    "Część zdania określająca rzeczownik (jaki? który? czyj?) to…|przydawka|okolicznik|dopełnienie|orzeczenie|Np. „mały pies” – mały to przydawka.",
+    "Część zdania odpowiadająca na pytania przypadków zależnych (kogo? czego? komu?…) to…|dopełnienie|przydawka|podmiot|okolicznik|Dopełnienie zwykle określa czasownik.",
+    "Część zdania mówiąca gdzie? kiedy? jak? to…|okolicznik|przydawka|podmiot|dopełnienie|Okoliczniki: miejsca, czasu, sposobu, przyczyny, celu.",
+    "W zdaniu „Kot śpi na kanapie” podmiotem jest…|kot|śpi|na kanapie|kanapie|Kto śpi? – kot.",
+    "W zdaniu „Ala czyta książkę” orzeczeniem jest…|czyta|Ala|książkę|nie ma orzeczenia|Co robi Ala? – czyta.",
+    "Zdanie bez orzeczenia (np. „Cisza!”) to…|równoważnik zdania|zdanie złożone|zdanie pojedyncze rozwinięte|wypowiedzenie złożone|Równoważnik zdania nie ma osobowej formy czasownika.",
+    "Zdanie złożone składa się z…|co najmniej dwóch zdań składowych|jednego słowa|samego podmiotu|tylko z orzeczenia|Ma co najmniej dwa orzeczenia.",
+    "Zdanie pojedyncze, które ma tylko podmiot i orzeczenie, to zdanie…|nierozwinięte|rozwinięte|złożone|równoważnik|Np. „Pies szczeka.”",
+    "„Mama piecze ciasto, a tata czyta gazetę.” To zdanie…|złożone|pojedyncze|równoważnik|nierozwinięte|Dwa orzeczenia: piecze, czyta.",
+    "Przed jakim spójnikiem stawiamy przecinek?|ale|i|oraz|lub|Przed „ale, lecz, a, więc, bo, że” stawiamy przecinek.",
+    "Przed którym spójnikiem zwykle NIE stawiamy przecinka?|i|ale|że|bo|Przed pojedynczym „i” zwykle nie ma przecinka.",
+    "Wyraz, który łączy zdania lub wyrazy (np. i, ale, bo), to…|spójnik|przyimek|partykuła|wykrzyknik|Spójnik – łączy.",
+    "„W, na, pod, za, przed” to…|przyimki|spójniki|partykuły|zaimki|Przyimki występują z rzeczownikiem.",
+    "„Ja, ty, on, mój, ten, kto” to…|zaimki|liczebniki|przyimki|przysłówki|Zaimki zastępują inne części mowy.",
+    "„Ach!, och!, hej!” to…|wykrzykniki|partykuły|spójniki|przyimki|Wykrzyknik wyraża uczucia.",
+    "„Nie, czy, niech, -by” to…|partykuły|przyimki|spójniki|zaimki|Partykuły nadają odcień znaczeniowy.",
+    "Jaki znak stawiamy na końcu zdania pytającego?|?|.|!|…|Zdanie pytające kończy się pytajnikiem.",
+    "Zdanie wyrażające polecenie lub prośbę to zdanie…|rozkazujące|oznajmujące|pytające|złożone|Np. „Zamknij okno!”",
+  ]),
+  BankTopic('p5_literature', 'Literatura', _p, 5, [
+    "Kto napisał „Hobbita”?|J.R.R. Tolkien|C.S. Lewis|J.K. Rowling|Jules Verne|John Ronald Reuel Tolkien.",
+    "Jak nazywa się główny bohater „Hobbita”?|Bilbo Baggins|Frodo|Gandalf|Thorin|Bilbo Baggins z Bag End.",
+    "Kim był Gandalf w „Hobbicie”?|czarodziejem|krasnoludem|smokiem|elfem|Gandalf Szary – czarodziej.",
+    "Jak nazywał się smok w „Hobbicie”?|Smaug|Gollum|Beorn|Elrond|Smaug pilnował skarbu pod Samotną Górą.",
+    "Kto napisał „Chłopców z Placu Broni”?|Ferenc Molnár|Henryk Sienkiewicz|Kornel Makuszyński|Bolesław Prus|Węgierski pisarz Ferenc Molnár.",
+    "Jak nazywał się najmłodszy chłopiec z Placu Broni, jedyny szeregowiec?|Nemeczek|Boka|Gereb|Feri Acz|Ernest Nemeczek.",
+    "Kim jest Zeus w mitologii greckiej?|najważniejszym z bogów|bogiem mórz|bogiem podziemi|herosem|Zeus – władca Olimpu.",
+    "Kim był Posejdon?|bogiem mórz|bogiem wojny|bogiem słońca|władcą podziemi|Posejdon – władca mórz, z trójzębem.",
+    "Kto wykradł bogom ogień dla ludzi?|Prometeusz|Herakles|Dedal|Syzyf|Za to został ukarany przykuciem do skały.",
+    "Kto zbudował skrzydła z piór i wosku?|Dedal|Ikar|Prometeusz|Tezeusz|Dedal zbudował je dla siebie i syna – Ikara.",
+    "Dlaczego Ikar spadł do morza?|zbliżył się do słońca i wosk się stopił|zasnął|ukarał go Zeus piorunem|zaplątał się w liny|Nie posłuchał ojca.",
+    "Kto zabił Minotaura?|Tezeusz|Herakles|Perseusz|Odyseusz|Pomogła mu nić Ariadny.",
+    "Jak nazywa się zbiór mitów greckich o bogach i herosach?|mitologia|biblia|kronika|encyklopedia|Mitologia – zbiór mitów.",
+    "Kim była Demeter?|boginią urodzaju|boginią mądrości|boginią miłości|boginią łowów|Matka Persefony; mit tłumaczy pory roku.",
+    "Kto napisał „Tajemniczy ogród”?|Frances Hodgson Burnett|Lucy Maud Montgomery|Astrid Lindgren|Lewis Carroll|Bohaterka to Mary Lennox.",
+    "„Ania z Zielonego Wzgórza” to powieść…|Lucy Maud Montgomery|Frances Hodgson Burnett|Mark Twain|Charles Dickens|Kanadyjska pisarka L.M. Montgomery.",
+    "Utwór epicki o mniejszej objętości niż powieść, z jednym wątkiem, to…|opowiadanie|epopeja|fraszka|hymn|Opowiadanie ma zwykle jeden wątek.",
+    "Wielowątkowy, obszerny utwór epicki to…|powieść|bajka|fraszka|legenda|Powieść – wiele wątków i bohaterów.",
+    "Rodzaj literacki, w którym występuje narrator, to…|epika|liryka|dramat|komedia|Epika – świat przedstawiony opowiadany przez narratora.",
+    "Utwór przeznaczony do wystawienia na scenie należy do…|dramatu|epiki|liryki|baśni|Dramat – dialogi i didaskalia.",
+  ]),
+  BankTopic('p6_language', 'Nauka o języku', _p, 6, [
+    "Wyrazy o podobnym znaczeniu to…|synonimy|antonimy|homonimy|neologizmy|Np. dom – mieszkanie, szybki – prędki.",
+    "Wyrazy o przeciwnym znaczeniu to…|antonimy|synonimy|archaizmy|zdrobnienia|Np. wysoki – niski.",
+    "Wyrazy brzmiące tak samo, ale o różnych znaczeniach (zamek do drzwi i zamek króla) to…|homonimy|synonimy|antonimy|epitety|Homonimy – jednakowe brzmienie, różne znaczenia.",
+    "Stały związek wyrazowy o przenośnym znaczeniu, np. „mieć muchy w nosie”, to…|frazeologizm|neologizm|zdrobnienie|archaizm|Związek frazeologiczny.",
+    "„Mieć muchy w nosie” oznacza…|być w złym humorze|być przeziębionym|bać się owadów|być głodnym|Frazeologizm: być obrażonym, w złym humorze.",
+    "„Pracować w pocie czoła” oznacza…|ciężko pracować|pracować w lecie|pracować w kapeluszu|nie pracować|Z wielkim wysiłkiem.",
+    "„Gruszki na wierzbie” to…|obietnice bez pokrycia|smaczne owoce|cud natury|wiosna|Rzeczy niemożliwe do spełnienia.",
+    "„Trzymać język za zębami” oznacza…|nie zdradzać tajemnicy|mieć chory ząb|dużo mówić|kłamać|Zachować coś w sekrecie.",
+    "Wyraz „domek” to…|zdrobnienie|zgrubienie|archaizm|neologizm|Zdrobnienie od „dom”.",
+    "Wyraz „psisko” to…|zgrubienie|zdrobnienie|synonim|homonim|Zgrubienie od „pies”.",
+    "Wyraz dawny, dziś niepopularny (np. „rzekł”, „białogłowa”), to…|archaizm|neologizm|kolokwializm|wulgaryzm|Archaizm – wyraz przestarzały.",
+    "Nowo utworzony wyraz to…|neologizm|archaizm|homonim|frazeologizm|Neologizm – nowe słowo.",
+    "Część wyrazu wspólna dla wyrazów pokrewnych (np. las – leśny – lasek) to…|rdzeń|przedrostek|przyrostek|końcówka|Rdzeń: las/leś.",
+    "Wyraz, od którego tworzymy nowy wyraz, to wyraz…|podstawowy|pochodny|złożony|obcy|np. dom → domek; dom jest podstawowy.",
+    "Słowa „kwiat, kwiatek, kwiaciarnia” to…|wyrazy pokrewne|synonimy|antonimy|homonimy|Rodzina wyrazów – wspólny rdzeń.",
+    "Głoski wymawiane z drganiem wiązadeł głosowych (b, d, g, w, z) to głoski…|dźwięczne|bezdźwięczne|nosowe|twarde|Pary: b–p, d–t, g–k.",
+    "Ile głosek ma wyraz „szczur”?|4|6|5|3|sz-cz-u-r: dwuznaki to jedna głoska.",
+    "Ile liter ma wyraz „chleb”?|5|4|3|6|c-h-l-e-b: 5 liter, ale 4 głoski.",
+    "„Ą” i „ę” to samogłoski…|nosowe|ustne|bezdźwięczne|twarde|Wymawiane z udziałem jamy nosowej.",
+  ]),
+  BankTopic('p6_literature', 'Literatura', _p, 6, [
+    "Kto napisał „W pustyni i w puszczy”?|Henryk Sienkiewicz|Bolesław Prus|Adam Mickiewicz|Kornel Makuszyński|Powieść przygodowa z 1911 r.",
+    "Jak nazywali się bohaterowie „W pustyni i w puszczy”?|Staś i Nel|Bilbo i Gandalf|Adaś i Ambroży|Tomek i Huck|Staś Tarkowski i Nel Rawlison.",
+    "Gdzie toczy się akcja „W pustyni i w puszczy”?|w Afryce|w Ameryce|w Azji|w Polsce|Egipt, Sudan i dalej w Afryce.",
+    "Kim był Kali?|chłopcem z plemienia Wahima|słoniem|przewodnikiem z Egiptu|kapitanem statku|Kali – towarzysz Stasia.",
+    "Jak miał na imię słoń z „W pustyni i w puszczy”?|King|Saba|Mahdi|Fumu|Słoń King uratowany przez Stasia.",
+    "Kto napisał „Opowieść wigilijną”?|Charles Dickens|Mark Twain|Hans Christian Andersen|Lewis Carroll|Angielski pisarz Charles Dickens.",
+    "Jak nazywał się skąpiec z „Opowieści wigilijnej”?|Ebenezer Scrooge|Jacob Marley|Bob Cratchit|Fred|Scrooge przemienia się w Wigilię.",
+    "Ile duchów odwiedziło Scrooge’a (oprócz Marleya)?|trzy|dwa|cztery|jeden|Duch Minionych, Obecnych i Przyszłych Świąt.",
+    "Kto napisał „Małego Księcia”?|Antoine de Saint-Exupéry|Jules Verne|Victor Hugo|Charles Perrault|Francuski pilot i pisarz.",
+    "Kogo Mały Książę oswoił na Ziemi?|lisa|węża|baranka|różę|Lis: „Dobrze widzi się tylko sercem”.",
+    "Fraszka to…|krótki, żartobliwy wiersz z puentą|długa powieść|utwór sceniczny|opowieść o świętych|Fraszki pisał Jan Kochanowski.",
+    "Kto napisał fraszki „Na lipę” i „Na zdrowie”?|Jan Kochanowski|Ignacy Krasicki|Adam Mickiewicz|Juliusz Słowacki|Jan z Czarnolasu – renesans.",
+    "Przenośnia to inaczej…|metafora|porównanie|epitet|wyraz dźwiękonaśladowczy|Np. „morze łez”.",
+    "„Morze łez” to przykład…|metafory (przenośni)|porównania|onomatopei|rymu|Wyrazy użyte w znaczeniu przenośnym.",
+    "Zwrot do osoby lub rzeczy w wierszu (np. „Litwo! Ojczyzno moja!”) to…|apostrofa|epitet|anafora|puenta|Apostrofa – bezpośredni zwrot.",
+    "Zaskakujące zakończenie fraszki lub anegdoty to…|puenta|morał|refren|rym|Puenta – zaskakująca końcówka.",
+    "Hymn to utwór…|uroczysty, pochwalny|żartobliwy|o miłości|o zwierzętach|Np. hymn narodowy.",
+    "Kto napisał „Pana Tadeusza”?|Adam Mickiewicz|Juliusz Słowacki|Henryk Sienkiewicz|Cyprian Norwid|Epopeja narodowa z 1834 r.",
+    "Kto jest autorem „Katarynki”?|Bolesław Prus|Henryk Sienkiewicz|Stefan Żeromski|Eliza Orzeszkowa|Nowela o panu Tomaszu i niewidomej dziewczynce.",
+  ]),
+  BankTopic('p7_literature', 'Lektury i epoki', _p, 7, [
+    "Kto napisał „Balladynę”?|Juliusz Słowacki|Adam Mickiewicz|Aleksander Fredro|Zygmunt Krasiński|Dramat romantyczny z 1839 r.",
+    "O co rywalizowały Balladyna i Alina?|kto pierwszy zbierze dzbanek malin|o koronę|o konia|o pierścień|Kto szybciej zbierze maliny, poślubi Kirkora.",
+    "Kto napisał „Zemstę”?|Aleksander Fredro|Adam Mickiewicz|Juliusz Słowacki|Henryk Sienkiewicz|Komedia o sporze o mur.",
+    "O co spierali się Cześnik i Rejent w „Zemście”?|o mur graniczny|o konia|o skarb|o koronę|Spór o mur dzielący zamek.",
+    "Kim był Papkin?|chwalipiętą i tchórzem udającym rycerza|sędzią|księdzem|chłopem|„Lew Północy” – postać komiczna.",
+    "Kto napisał „Dziady cz. II”?|Adam Mickiewicz|Juliusz Słowacki|Cyprian Norwid|Bolesław Prus|Dramat romantyczny z 1823 r.",
+    "Jaką prawdę głosi duch Józi w „Dziadach cz. II”?|kto nie doznał goryczy, nie dozna słodyczy w niebie|kto był okrutny, nie dostanie pomocy|trzeba kochać ludzi|bogactwo daje szczęście|Kto nie doznał goryczy ni razu…",
+    "Kto prowadzi obrzęd w „Dziadach”?|Guślarz|Ksiądz|Starzec|Pasterka|Guślarz wywołuje duchy.",
+    "Kto napisał „Kamienie na szaniec”?|Aleksander Kamiński|Melchior Wańkowicz|Arkady Fiedler|Krzysztof Kamil Baczyński|Książka o Szarych Szeregach (1943).",
+    "Jakie pseudonimy mieli bohaterowie „Kamieni na szaniec”?|Rudy, Alek, Zośka|Kali, Staś, Nel|Boka, Nemeczek, Gereb|Bilbo, Frodo, Sam|Jan Bytnar, Aleksy Dawidowski, Tadeusz Zawadzki.",
+    "Akcja pod Arsenałem miała na celu…|odbicie Rudego z rąk gestapo|zdobycie broni|wysadzenie mostu|uwolnienie Alka|26 marca 1943 r.",
+    "Ballada to utwór łączący cechy…|epiki, liryki i dramatu|tylko liryki|tylko dramatu|tylko epiki|Ballada – gatunek synkretyczny.",
+    "Kto napisał balladę „Świtezianka”?|Adam Mickiewicz|Juliusz Słowacki|Jan Kochanowski|Aleksander Fredro|Z tomu „Ballady i romanse” (1822).",
+    "Kiedy zaczął się romantyzm w Polsce (umownie)?|1822|1764|1918|1863|Wydanie „Ballad i romansów” Mickiewicza.",
+    "Tren to utwór…|żałobny, po czyjejś śmierci|żartobliwy|pochwalny|miłosny|Jan Kochanowski napisał „Treny” po śmierci córki Urszuli.",
+    "Kto napisał „Latarnika”?|Henryk Sienkiewicz|Bolesław Prus|Stefan Żeromski|Adam Mickiewicz|Nowela o Skawińskim.",
+    "Co zgubiło latarnika Skawińskiego?|zaczytał się w „Panu Tadeuszu” i nie zapalił latarni|zasnął pijany|uciekł|pomylił statki|Zatęsknił za ojczyzną.",
+    "Nowela to utwór…|krótki, z wyraźną puentą i jednym wątkiem|wielowątkowy|wierszowany|sceniczny|Np. „Latarnik”, „Katarynka”.",
+    "Didaskalia to…|wskazówki autora dramatu dla aktorów i reżysera|dialogi|monologi|piosenki|Zwykle zapisane kursywą w nawiasach.",
+    "Anafora to…|powtórzenie tego samego słowa na początku wersów|zakończenie|rym|wykrzyknik|Środek stylistyczny.",
+  ]),
+  BankTopic('p8_literature', 'Lektury i epoki', _p, 8, [
+    "Kim był Jacek Soplica w „Panu Tadeuszu”?|ojcem Tadeusza, który jako ksiądz Robak odkupywał winy|stryjem Hrabiego|Sędzią|wojskim|Jacek Soplica zabił Stolnika.",
+    "Ile ksiąg ma „Pan Tadeusz”?|12|10|24|8|Dwanaście ksiąg wierszem.",
+    "Gdzie toczy się akcja „Pana Tadeusza”?|na Litwie, w Soplicowie|w Krakowie|w Warszawie|w Paryżu|Soplicowo, lata 1811–1812.",
+    "Kim był Gerwazy?|klucznikiem Horeszków|Sędzią|księdzem|Wojskim|Klucznik z „Scyzorykiem”.",
+    "Kto zagrał koncert na cymbałach w „Panu Tadeuszu”?|Jankiel|Wojski|Gerwazy|Protazy|Koncert Jankiela – księga XII.",
+    "Kto grał na rogu w „Panu Tadeuszu”?|Wojski|Jankiel|Sędzia|Hrabia|Koncert Wojskiego na rogu.",
+    "„Pan Tadeusz” to…|epopeja narodowa|komedia|tren|nowela|Epopeja – obraz życia narodu.",
+    "Kto napisał „Quo vadis”?|Henryk Sienkiewicz|Bolesław Prus|Władysław Reymont|Stefan Żeromski|Nagroda Nobla 1905.",
+    "W czasach którego cesarza dzieje się „Quo vadis”?|Nerona|Juliusza Cezara|Oktawiana Augusta|Konstantyna|Rzym, I w. n.e.",
+    "Kto uratował Ligię na arenie w „Quo vadis”?|Ursus|Winicjusz|Petroniusz|Chilon|Ursus pokonał tura.",
+    "Kto napisał „Syzyfowe prace”?|Stefan Żeromski|Henryk Sienkiewicz|Bolesław Prus|Eliza Orzeszkowa|Powieść o rusyfikacji szkoły.",
+    "Kto napisał „Mazurka Dąbrowskiego”?|Józef Wybicki|Adam Mickiewicz|Jan Henryk Dąbrowski|Juliusz Słowacki|Słowa – Józef Wybicki, 1797.",
+    "Epopeja „Iliada” jest dziełem…|Homera|Wergiliusza|Sofoklesa|Owidiusza|Starożytna Grecja.",
+    "Kto napisał „Mały Książę”?|Antoine de Saint-Exupéry|Albert Camus|Victor Hugo|Jules Verne|Wydany w 1943 r.",
+    "Kto napisał „Ten obcy”?|Irena Jurgielewiczowa|Henryk Sienkiewicz|Kornel Makuszyński|Ferenc Molnár|Powieść o Zenku, Uli, Pestce i Mariuszu.",
+    "Ironia to…|mówienie odwrotnie, niż się myśli, zwykle z kpiną|zwrot do adresata|powtórzenie|porównanie|Np. „Ładna mi pogoda!” w czasie burzy.",
+    "Oksymoron to…|połączenie słów o przeciwnych znaczeniach (np. „gorący lód”)|powtórzenie na początku wersów|zdrobnienie|wyolbrzymienie|Łączy sprzeczności.",
+    "Hiperbola to…|wyolbrzymienie|pomniejszenie|porównanie|wykrzyknienie|Np. „czekam wieki”, „mówiłem ci to tysiąc razy”.",
+    "Rozprawka to forma wypowiedzi, w której…|uzasadniamy tezę lub hipotezę argumentami|opisujemy krajobraz|opowiadamy przygodę|piszemy list|Teza, argumenty, przykłady, zakończenie.",
+    "Argument w rozprawce powinien być…|uzasadnieniem tezy, popartym przykładem|tytułem|cytatem bez komentarza|pytaniem|Argument + przykład + komentarz.",
+  ]),
+];
+
+// ───────── Łączenie w pary ─────────
+
+const List<PairBank> polishPairs = [
+  PairBank('p5_authors', 'Autorzy lektur', _p, 5, 'Połącz utwór z autorem', [
+    'Hobbit=J.R.R. Tolkien', 'Akademia pana Kleksa=Jan Brzechwa', 'Opowieści z Narnii=C.S. Lewis',
+    'Chłopcy z Placu Broni=Ferenc Molnár', 'Lokomotywa=Julian Tuwim', 'Tajemniczy ogród=F.H. Burnett',
+    'Ania z Zielonego Wzgórza=L.M. Montgomery', 'Mitologia=Jan Parandowski', 'Bajki=Ignacy Krasicki',
+  ]),
+  PairBank('p7_authors', 'Autorzy lektur', _p, 7, 'Połącz utwór z autorem', [
+    'Pan Tadeusz=Adam Mickiewicz', 'Balladyna=Juliusz Słowacki', 'Zemsta=Aleksander Fredro', 'Quo vadis=Henryk Sienkiewicz',
+    'Kamienie na szaniec=Aleksander Kamiński', 'Opowieść wigilijna=Charles Dickens', 'Mały Książę=Antoine de Saint-Exupéry',
+    'Treny=Jan Kochanowski', 'Katarynka=Bolesław Prus', 'Syzyfowe prace=Stefan Żeromski', 'Dziady cz. II=Adam Mickiewicz',
+  ]),
+  PairBank('p6_idioms', 'Frazeologizmy', _p, 6, 'Połącz frazeologizm ze znaczeniem', [
+    'mieć muchy w nosie=być w złym humorze', 'gruszki na wierzbie=obietnice bez pokrycia',
+    'trzymać język za zębami=dochować tajemnicy', 'dzielić skórę na niedźwiedziu=cieszyć się przedwcześnie',
+    'mieć głowę na karku=być rozsądnym', 'zbić z tropu=zaskoczyć, zmylić', 'wziąć nogi za pas=uciec',
+    'grać pierwsze skrzypce=przewodzić', 'bułka z masłem=coś bardzo łatwego', 'chodzić z głową w chmurach=marzyć, być nieuważnym',
+    'owijać w bawełnę=mówić nie wprost', 'kamień spadł z serca=poczuć ulgę',
+  ]),
+  PairBank('p4_antonyms', 'Antonimy', _p, 4, 'Połącz wyrazy o przeciwnym znaczeniu', [
+    'odważny=tchórzliwy', 'pracowity=leniwy', 'hojny=skąpy', 'szczery=kłamliwy', 'radość=smutek', 'przyjaciel=wróg',
+    'początek=koniec', 'twardy=miękki', 'ciężki=lekki', 'bogaty=biedny', 'zwycięstwo=porażka', 'głęboki=płytki',
+  ]),
+  PairBank('p4_synonyms', 'Synonimy', _p, 4, 'Połącz wyrazy o podobnym znaczeniu', [
+    'szybki=prędki', 'mądry=rozumny', 'piękny=śliczny', 'smutny=przygnębiony', 'zmęczony=wyczerpany', 'dom=mieszkanie',
+    'auto=samochód', 'wesoły=radosny', 'odważny=dzielny', 'mówić=rozmawiać', 'patrzeć=spoglądać', 'duży=ogromny',
+  ]),
+  PairBank('p8_devices', 'Środki stylistyczne', _p, 8, 'Połącz przykład ze środkiem stylistycznym', [
+    'gorący lód=oksymoron', 'czekam na ciebie wieki=hiperbola', 'oczy jak gwiazdy=porównanie', 'srebrny księżyc=epitet',
+    'płaczące niebo=uosobienie', 'Litwo! Ojczyzno moja!=apostrofa', 'bum, trach, kap=onomatopeja',
+  ]),
+];
+
+Task Function(Random) bankWithNie(BankTopic t) => (Random r) => r.nextInt(4) == 0 ? nieTask(r) : bankChoice(t, r);
