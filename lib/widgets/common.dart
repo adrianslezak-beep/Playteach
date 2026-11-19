@@ -92,7 +92,10 @@ class FeedbackArea extends StatelessWidget {
         duration: const Duration(milliseconds: 600),
         curve: Curves.elasticOut,
         builder: (context, v, ch) => Transform.scale(scale: v, child: ch),
-        child: Column(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 190),
+          child: SingleChildScrollView(
+            child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('⭐ $praise ⭐',
@@ -111,6 +114,8 @@ class FeedbackArea extends StatelessWidget {
                 child: Text('Przesuń w górę po następne ⬆', style: TextStyle(color: Colors.black54)),
               ),
           ],
+            ),
+          ),
         ),
       );
     }

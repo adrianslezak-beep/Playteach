@@ -43,12 +43,12 @@ class _MatchCardState extends State<MatchCard> {
     if (solved || matched.contains(pairIdx)) return;
     setState(() => selected = pairIdx);
     final a = widget.task.pairs[pairIdx].a;
-    if (!_isEmoji(a)) Speaker.speak(a);
+    if (!_isEmoji(a) && widget.task.subject != 'english') Speaker.speak(a);
   }
 
   void _tapRight(int pairIdx) {
     if (solved || matched.contains(pairIdx)) return;
-    Speaker.speak(widget.task.pairs[pairIdx].b);
+    if (widget.task.subject != 'english') Speaker.speak(widget.task.pairs[pairIdx].b);
     if (selected == null) return;
     if (pairIdx == selected) {
       setState(() {
