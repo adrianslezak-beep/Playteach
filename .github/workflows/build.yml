@@ -1,0 +1,73 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Wygeneruj pliki platform (android/ios)
+        run: |
+          flutter create --project-name playteach --org pl.playteach --platforms=android,ios .
+          rm -f test/widget_test.dart
+
+      - name: Dostosuj Androida (nazwa, ikona, TTS)
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="playteach"/android:label="Playteach"/' $M
+          if grep -q "<queries>" $M; then
+            perl -0pi -e 's#<queries>#<queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>#' $M
+          else
+            perl -0pi -e 's#</manifest>#    <queries>\n        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>\n</manifest>#' $M
+          fi
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            cp branding/android/mipmap-$d/ic_launcher.png android/app/src/main/res/mipmap-$d/ic_launcher.png
+          done
+
+      - name: Stały klucz podpisu (aktualizacje bez odinstalowania)
+        run: |
+          mkdir -p ~/.android
+          cp signing/playteach.keystore ~/.android/debug.keystore
+
+      - run: flutter pub get
+
+      - name: Analiza kodu
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Budowanie APK
+        run: flutter build apk --release --build-number=${{ github.run_number }}
+
+      - name: Przygotuj plik
+        run: cp build/app/outputs/flutter-apk/app-release.apk Playteach-${{ github.run_number }}.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Playteach-apk
+          path: Playteach-*.apk
+
+      - name: Publikuj w Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Playteach – wersja ${{ github.run_number }}
+          body: Plik APK do zainstalowania na Androidzie. Pobierz Playteach-${{ github.run_number }}.apk.
+          files: Playteach-*.apk
+          make_latest: true
