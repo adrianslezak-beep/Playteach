@@ -539,7 +539,7 @@ Task m7Equation(Random r) {
   final a = rng(r, 2, 9), x = rng(r, -6, 12), b = rng(r, -15, 20);
   final c = a * x + b;
   final bs = b < 0 ? '− ${-b}' : '+ $b';
-  return choice('m7_equation', _m, 'Rozwiąż równanie', intOpts(r, x, [x + 1, x - 1, -x, (c + b) ~/ a], 4).map((e) => 'x = ${sn(e)}').toList(), 'x = ${sn(x)}',
+  return choice('m7_equation', _m, 'Rozwiąż równanie', intOpts(r, x, [x + 1, x - 1, -x, (c + b) ~/ a], 4).map((e) => 'x = $e').toList(), 'x = ${sn(x)}',
       visual: '${a}x $bs = ${sn(c)}',
       hint: 'Przenieś liczbę na drugą stronę (zmieniając znak), potem podziel przez $a.',
       explain: '${a}x = ${sn(c - b)}, więc x = ${sn(x)}');
